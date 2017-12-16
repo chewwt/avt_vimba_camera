@@ -16,9 +16,9 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 #Get architecture
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-include(TargetArchitecture)
-target_architecture(ARCH)
+#from https://stackoverflow.com/questions/11944060/how-to-detect-target-architecture-using-cmake
+EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCH)
+message("ARCH detected: ${ARCH}")
 
 #add dynamic reconfigure api
 generate_dynamic_reconfigure_options(
@@ -65,6 +65,12 @@ function(add_dependencies_and_linkings arg)
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_32bit/libVimbaC.so
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_32bit/libVimbaCPP.so
     )
+  elseif("${ARCH}" STREQUAL aarch64)
+    target_link_libraries(${arg}
+      ${catkin_LIBRARIES}
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_64bit/libVimbaC.so
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_64bit/libVimbaCPP.so
+    ) 
   else()
     message(FATAL_ERROR "[libvimba]: Architecture ${ARCH} not suported. Exiting...")
   endif()
@@ -137,6 +143,12 @@ elseif("${ARCH}" STREQUAL armv7)
   install(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_32bit/libVimbaC.so
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_32bit/libVimbaCPP.so
+    DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  )
+elseif("${ARCH}" STREQUAL aarch64)
+  install(FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_64bit/libVimbaC.so
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_64bit/libVimbaCPP.so
     DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   )
 endif()
